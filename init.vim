@@ -72,7 +72,7 @@ set scl=yes
 set scrolloff=10
 
 filetype detect
-let f2 = ['vhdl', 'lua', 'tex']
+let f2 = ['vhdl', 'lua', 'tex', 'verilog', 'systemverilog']
 let f8 = ['c', 'cpp', 'h', 'hpp']
 set tabstop=4 softtabstop=4 shiftwidth=4
 
@@ -90,11 +90,6 @@ for i in f8
     endif
 endfor
 
-if &filetype == 'tex'
-  set wrap
-  set linebreak
-endif
-
 set expandtab
 set autoindent
 set smartindent
@@ -109,6 +104,16 @@ set nobackup
 set undodir=~/.vim/undodir
 set undofile
 
+set fo+=nc
+
+if &filetype == 'tex'
+  "set wrap
+  set tw=100
+  set fo+=tpwb
+  set fo-=l
+ " set linebreak
+
+endif
 "------ Auto cmd
 "let g:python3_host_prog="/bin/python3"
 
@@ -226,7 +231,7 @@ lua <<EOF
       {
         name = 'buffer',
         option = {
-            keywork_pattern = [[\k\+]],
+            keyword_pattern = [[\k\+]],
         }
       }
     })
@@ -250,20 +255,47 @@ lua <<EOF
     }
   )
 
--- The nvim-cmp almost supports LSP's capabilities so You should advertise it to LSP servers..
-  local capabilities = vim.lsp.protocol.make_client_capabilities()
-  capabilities = require('cmp_nvim_lsp').update_capabilities(capabilities)
 
-  require('lspconfig')['ghdl_ls'].setup {
---      cmd = {'ghdl-ls', '--log-file', 'lsp.log', '--trace-file', 'lsptrace'},
-      capabilities = capabilities,
+  do
+    local lsp_list = {
+        ['vhdl']            = 'ghdl_ls',
+        ['systemverilog']   = 'verible',
+        ['verilog']         = 'verible',
+        ['tex']             = 'ltex',
+        ['c']               = 'clangd',
+        ['cpp']             = 'clangd',
+        ['python']          = 'pyright',
       }
 
-  local lsp_servers = {'clangd', 'pyright'}--, 'texlab'}
-  for i,server in ipairs(lsp_servers) do
-    require('lspconfig')[server].setup {
-      capabilities = capabilities,
+    local lsp = lsp_list[vim.bo.filetype];
+
+    if lsp then
+      -- The nvim-cmp almost supports LSP's capabilities so You should advertise it to LSP servers..
+      local capabilities = vim.lsp.protocol.make_client_capabilities()
+      capabilities = require('cmp_nvim_lsp').default_capabilities(capabilities)
+
+      local settings = function(lsp)
+        local lsp_setting = {
+          ['ltex'] = { ltex = { language = "fr" } },
+          ['ghdl_ls'] = { vhdl = { debugLSP = true } },
+        }
+        local configs = require('lspconfig.configs')
+
+        if lsp_setting[lsp] then
+          return lsp_setting[lsp]
+        elseif configs.lsp then
+          return configs.lsp.default_config.settings
+        else
+          return {}
+        end
+      end
+
+      require('lspconfig')[lsp].setup {
+        capabilities = capabilities,
+        settings = settings(lsp),
       }
+
+    end
   end
 
 EOF
