@@ -22,6 +22,7 @@ Plug 'hrsh7th/vim-vsnip'
 Plug 'rafamadriz/friendly-snippets'
 
 Plug 'lervag/vimtex'
+Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() }, 'for': ['markdown', 'vim-plug']}
 
 "Add pictogram to NVIM LSP
 Plug 'kdheepak/cmp-latex-symbols'
@@ -105,13 +106,20 @@ set undodir=~/.vim/undodir
 set undofile
 
 set fo+=nc
+"Remove comment header when using 'o' key
+set fo-=o
 
 if &filetype == 'tex'
-  "set wrap
-  set tw=100
-  set fo+=tpwb
-  set fo-=l
- " set linebreak
+  " Soft wrapping
+  set wrap
+  set linebreak
+  set breakindent
+  noremap j gj
+  noremap k gk
+
+  "Hard wrapping
+  "set tw=100
+  "set fo+=tpwb
 
 endif
 "------ Auto cmd
@@ -249,8 +257,13 @@ lua <<EOF
   cmp.setup.cmdline({ ':' }, {
       mapping = cmp.mapping.preset.cmdline(),
       sources = cmp.config.sources({
-         { name = 'path' },
-         { name = 'cmdline' }
+        { name = 'path' },
+        {
+            name = 'cmdline',
+            option = {
+              ignore_cmds = { }
+            }
+        }
       })
     }
   )
@@ -265,6 +278,7 @@ lua <<EOF
         ['c']               = 'clangd',
         ['cpp']             = 'clangd',
         ['python']          = 'pyright',
+        ['markdown']        = 'marksman'
       }
 
     local lsp = lsp_list[vim.bo.filetype];
