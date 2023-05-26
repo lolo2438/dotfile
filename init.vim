@@ -18,6 +18,7 @@ Plug 'hrsh7th/cmp-nvim-lsp-document-symbol'
 
 Plug 'hrsh7th/cmp-vsnip'
 Plug 'hrsh7th/vim-vsnip'
+Plug 'hrsh7th/vim-vsnip-integ'
 
 Plug 'rafamadriz/friendly-snippets'
 
@@ -75,6 +76,7 @@ set scrolloff=10
 filetype detect
 let f2 = ['vhdl', 'lua', 'tex', 'verilog', 'systemverilog']
 let f8 = ['c', 'cpp', 'h', 'hpp']
+let f1 = ['tcl']
 set tabstop=4 softtabstop=4 shiftwidth=4
 
 for i in f2
@@ -87,6 +89,13 @@ endfor
 for i in f8
     if &filetype == i
         set tabstop=8 softtabstop=8 shiftwidth=8
+        break
+    endif
+endfor
+
+for i in f1
+    if &filetype == i
+        set tabstop=1 softtabstop=1 shiftwidth=1
         break
     endif
 endfor
@@ -105,10 +114,6 @@ set nobackup
 set undodir=~/.vim/undodir
 set undofile
 
-set fo+=nc
-"Remove comment header when using 'o' key
-set fo-=o
-
 if &filetype == 'tex'
   " Soft wrapping
   set wrap
@@ -120,8 +125,12 @@ if &filetype == 'tex'
   "Hard wrapping
   "set tw=100
   "set fo+=tpwb
-
 endif
+
+"Display hidden character
+"set list
+"set listchars=tab:→\ ,space:·,nbsp:␣,trail:•,eol:¶,precedes:«,extends:»
+
 "------ Auto cmd
 "let g:python3_host_prog="/bin/python3"
 
@@ -142,14 +151,32 @@ augroup LAURENT
     "autocmd BufWrite * : AutoFormat
 augroup END
 
+"----- Remaps
+"TODO: if there is a character at the right of the opening: don't do it
+"inoremap ( ()<Left>
+"inoremap <expr> ) search(')', 'n') ? <right> : )
+
+
+"inoremap [ []<Left>
+"inoremap { {}<Left>
+"inoremap {<CR> {<CR>}<ESC>O
+"inoremap <expr> <CR> search('{\%#}', 'n') ?
+""\<CR>\<CR>\<Up>\<C-f>" :
+"\<CR>"
+
 "------ <leader>
 let mapleader = " "
 
+
 "------ LSP
+
 
 " Avoid showing message extra message when using completion
 set shortmess+=c
 set completeopt=menuone,noinsert,noselect
+
+"Remove comment header when using 'o' key
+set fo-=o
 
 "--- VIMTEX
 "let g:vimtex_view_method = ''
