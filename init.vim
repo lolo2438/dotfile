@@ -1,4 +1,4 @@
-"----- Load plugins
+
 call plug#begin()
 " Textures
 Plug 'vim-airline/vim-airline'
@@ -7,31 +7,34 @@ Plug 'rakr/vim-one'
 " Language Server Protocol
 Plug 'neovim/nvim-lspconfig'
 
-"Auto completion plugin with extensions
-Plug 'hrsh7th/cmp-nvim-lsp'
-Plug 'hrsh7th/cmp-buffer'
-Plug 'hrsh7th/cmp-path'
-Plug 'hrsh7th/cmp-cmdline'
-Plug 'hrsh7th/nvim-cmp'
-Plug 'hrsh7th/cmp-nvim-lsp-signature-help'
-Plug 'hrsh7th/cmp-nvim-lsp-document-symbol'
+" Autocompletion
+Plug 'ms-jpq/coq_nvim', {'branch': 'coq'}
+Plug 'ms-jpq/coq.artifacts', {'branch': 'artifacts'}
+Plug 'ms-jpq/coq.thirdparty', {'branch': '3p'}
+Plug 'ms-jpq/chadtree'
 
-Plug 'hrsh7th/cmp-vsnip'
-Plug 'hrsh7th/vim-vsnip'
-Plug 'hrsh7th/vim-vsnip-integ'
-
-Plug 'rafamadriz/friendly-snippets'
-
+" Latex
 Plug 'lervag/vimtex'
+Plug 'rhysd/vim-grammarous'
+
+"Markdown
 Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() }, 'for': ['markdown', 'vim-plug']}
 
-"Add pictogram to NVIM LSP
-Plug 'kdheepak/cmp-latex-symbols'
+" Icons
+Plug 'ryanoasis/vim-devicons'
 Plug 'onsails/lspkind-nvim'
 
-"Smooth scrolling
+" Smooth scrolling
 Plug 'karb94/neoscroll.nvim'
-"Plug 'vim-autoformat/vim-autoformat'
+
+" Debugger adapter protocol
+Plug 'mfussenegger/nvim-dap'
+Plug 'nvim-neotest/nvim-nio'
+Plug 'rcarriga/nvim-dap-ui'
+
+"Directory
+Plug 'nvim-tree/nvim-web-devicons' " optional
+Plug 'nvim-tree/nvim-tree.lua'
 
 call plug#end()
 
@@ -114,17 +117,24 @@ set nobackup
 set undodir=~/.vim/undodir
 set undofile
 
-if &filetype == 'tex'
-  " Soft wrapping
-  set wrap
-  set linebreak
-  set breakindent
-  noremap j gj
-  noremap k gk
+let ftxt = ['tex', 'text', '']
+for i in ftxt
+  if &filetype == i
+    " Soft wrapping
+    set wrap
+    set linebreak
+    set breakindent
+    noremap j gj
+    noremap k gk
 
-  "Hard wrapping
-  "set tw=100
-  "set fo+=tpwb
+    "Hard wrapping
+    "set tw=100
+    "set fo+=tpwb
+  endif
+endfor
+
+if &filetype == 'vhdl'
+  let g:vhdl_indent_genportmap = 0
 endif
 
 "Display hidden character
@@ -178,11 +188,16 @@ set completeopt=menuone,noinsert,noselect
 "Remove comment header when using 'o' key
 set fo-=o
 
+
+let g:grammarous#jar_url = 'https://www.languagetool.org/download/LanguageTool-5.9.zip'
+"let g:grammarous#languagetool_cmd = 'languagetool'
+
 "--- VIMTEX
 "let g:vimtex_view_method = ''
 "let g:vimtex
 lua <<EOF
 
+  -- Neoscroll setup
   require('neoscroll').setup({
     -- All these keys will be mapped to their corresponding default scrolling animation
     mappings = {'<C-u>', '<C-d>', '<C-b>', '<C-f>',
@@ -199,109 +214,133 @@ lua <<EOF
   })
 
   -- Setup nvim-cmp.
-  local cmp = require('cmp')
-  local lspkind = require('lspkind')
+  --local cmp = require('cmp')
+  --local lspkind = require('lspkind')
 
-  cmp.setup({
-    snippet = {
-      expand = function(args)
-        vim.fn["vsnip#anonymous"](args.body) -- For `vsnip` user.
-        -- require('luasnip').lsp_expand(args.body) -- For `luasnip` user.
-        -- vim.fn["UltiSnips#Anon"](args.body) -- For `ultisnips` user.
-      end,
-    },
-    window = {
-      -- completion = cmp.config.window.bordered(),
-      -- documentation = cmp.config.window.bordered(),
-    },
-    formatting = {
-        format = lspkind.cmp_format({
-            mode = 'symbol',
-            maxwidth = 50,
-            symbols = 'codicons',
+  --cmp.setup({
+  --  snippet = {
+  --    expand = function(args)
+  --      vim.fn["vsnip#anonymous"](args.body) -- For `vsnip` user.
+  --      -- require('luasnip').lsp_expand(args.body) -- For `luasnip` user.
+  --      -- vim.fn["UltiSnips#Anon"](args.body) -- For `ultisnips` user.
+  --    end,
+  --  },
+  --  window = {
+  --    -- completion = cmp.config.window.bordered(),
+  --    -- documentation = cmp.config.window.bordered(),
+  --  },
+  --  formatting = {
+  --      format = lspkind.cmp_format({
+  --          mode = 'symbol',
+  --          maxwidth = 50,
+  --          symbols = 'codicons',
 
-            before = function(entry, vim_item)
-                vim_item.menu = ({
-                  nvim_lsp = "[LSP]",
-                  buffer   = "[BUF]",
-                }) [entry.source.name]
-                return vim_item;
-            end
-        })
-    },
-    mapping = cmp.mapping.preset.insert({
-      ['<C-p>'] = cmp.mapping.select_prev_item({ behavior = cmp.SelectBehavior.Select }),
-      ['<C-n>'] = cmp.mapping.select_next_item({ behavior = cmp.SelectBehavior.Select }),
-      ['<C-d>'] = cmp.mapping.scroll_docs(-4),
-      ['<C-f>'] = cmp.mapping.scroll_docs(4),
-      ['<C-Space>'] = cmp.mapping.complete(),
-      ['<C-e>'] = cmp.mapping.close(),
-      ['<CR>'] = cmp.mapping.confirm({
-        --behavior = cmp.ConfirmBehavior.Replace,
-        select = false
-      }),
-      ['<Tab>'] = function(fallback)
-        if cmp.visible() then
-          cmp.select_next_item({ behavior = cmp.SelectBehavior.Select })
-        else
-          fallback()
-        end
-      end,
-      ['<S-Tab>'] = function(fallback)
-        if cmp.visible() then
-          cmp.select_prev_item({ behavior = cmp.SelectBehavior.Select })
-        else
-          fallback()
-        end
-      end,
-    }),
-    sources = cmp.config.sources({
-      { name = 'nvim_lsp' },
-      { name = 'vsnip' }, -- For vsnip user.
-      -- { name = 'luasnip' }, -- For luasnip user.
-      -- { name = 'ultisnips' }, -- For ultisnips user.
-      { name = 'latex_symbols' },
-      { name = 'nvim_lsp_document_symbol' },
-      { name = 'nvim_lsp_signature_help' },
-      {
-        name = 'buffer',
-        option = {
-            keyword_pattern = [[\k\+]],
-        }
-      }
-    })
-  })
+  --          before = function(entry, vim_item)
+  --              vim_item.menu = ({
+  --                nvim_lsp = "[LSP]",
+  --                buffer   = "[BUF]",
+  --              }) [entry.source.name]
+  --              return vim_item;
+  --          end
+  --      })
+  --  },
+  --  mapping = cmp.mapping.preset.insert({
+  --    ['<C-p>'] = cmp.mapping.select_prev_item({ behavior = cmp.SelectBehavior.Select }),
+  --    ['<C-n>'] = cmp.mapping.select_next_item({ behavior = cmp.SelectBehavior.Select }),
+  --    ['<C-d>'] = cmp.mapping.scroll_docs(-4),
+  --    ['<C-f>'] = cmp.mapping.scroll_docs(4),
+  --    ['<C-Space>'] = cmp.mapping.complete(),
+  --    ['<C-e>'] = cmp.mapping.close(),
+  --    ['<CR>'] = cmp.mapping.confirm({
+  --      --behavior = cmp.ConfirmBehavior.Replace,
+  --      select = false
+  --    }),
+  --    ['<Tab>'] = function(fallback)
+  --      if cmp.visible() then
+  --        cmp.select_next_item({ behavior = cmp.SelectBehavior.Select })
+  --      else
+  --        fallback()
+  --      end
+  --    end,
+  --    ['<S-Tab>'] = function(fallback)
+  --      if cmp.visible() then
+  --        cmp.select_prev_item({ behavior = cmp.SelectBehavior.Select })
+  --      else
+  --        fallback()
+  --      end
+  --    end,
+  --  }),
+  --  sources = cmp.config.sources({
+  --    { name = 'nvim_lsp' },
+  --    { name = 'vsnip' }, -- For vsnip user.
+  --    -- { name = 'luasnip' }, -- For luasnip user.
+  --    -- { name = 'ultisnips' }, -- For ultisnips user.
+  --    { name = 'latex_symbols' },
+  --    { name = 'nvim_lsp_document_symbol' },
+  --    { name = 'nvim_lsp_signature_help' },
+  --    {
+  --      name = 'buffer',
+  --      option = {
+  --          keyword_pattern = [[\k\+]],
+  --      }
+  --    }
+  --  })
+  --})
 
 
-  cmp.setup.cmdline({ '/', '?' }, {
-      mapping = cmp.mapping.preset.cmdline(),
-      sources = {
-          { name = 'buffer' }
-          }
-      }
-  )
+  --cmp.setup.cmdline({ '/', '?' }, {
+  --    mapping = cmp.mapping.preset.cmdline(),
+  --    sources = {
+  --        { name = 'buffer' }
+  --        }
+  --    }
+  --)
 
-  cmp.setup.cmdline({ ':' }, {
-      mapping = cmp.mapping.preset.cmdline(),
-      sources = cmp.config.sources({
-        { name = 'path' },
-        {
-            name = 'cmdline',
-            option = {
-              ignore_cmds = { }
-            }
-        }
-      })
-    }
-  )
+  --cmp.setup.cmdline({ ':' }, {
+  --    mapping = cmp.mapping.preset.cmdline(),
+  --    sources = cmp.config.sources({
+  --      { name = 'path' },
+  --      {
+  --          name = 'cmdline',
+  --          option = {
+  --            ignore_cmds = { }
+  --          }
+  --      }
+  --    })
+  --  }
+  --)
 
+
+--['text']            = 'ltex',
+  local map = function(type, key, value)
+  	vim.keymap.set(type, key, value, {noremap = true, silent = true});
+  end
+
+  local lsp_attach = function(client)
+	  map('n','gD','<cmd>lua vim.lsp.buf.declaration()<CR>')
+	  map('n','gd','<cmd>lua vim.lsp.buf.definition()<CR>')
+	  map('n','K','<cmd>lua vim.lsp.buf.hover()<CR>')
+	  map('n','gr','<cmd>lua vim.lsp.buf.references()<CR>')
+	  map('n','gs','<cmd>lua vim.lsp.buf.signature_help()<CR>')
+	  map('n','gi','<cmd>lua vim.lsp.buf.implementation()<CR>')
+	  map('n','gt','<cmd>lua vim.lsp.buf.type_definition()<CR>')
+	  map('n','<leader>gw','<cmd>lua vim.lsp.buf.document_symbol()<CR>')
+	  map('n','<leader>gW','<cmd>lua vim.lsp.buf.workspace_symbol()<CR>')
+	  map('n','<leader>ah','<cmd>lua vim.lsp.buf.hover()<CR>')
+	  map('n','<leader>af','<cmd>lua vim.lsp.buf.code_action()<CR>')
+	  map('n','<leader>ee','<cmd>lua vim.lsp.util.show_line_diagnostics()<CR>')
+	  map('n','<leader>ar','<cmd>lua vim.lsp.buf.rename()<CR>')
+	  map('n','<leader>=', '<cmd>lua vim.lsp.buf.formatting()<CR>')
+	  map('n','<leader>ai','<cmd>lua vim.lsp.buf.incoming_calls()<CR>')
+	  map('n','<leader>ao','<cmd>lua vim.lsp.buf.outgoing_calls()<CR>')
+  end
 
   do
     local lsp_list = {
-        ['vhdl']            = 'ghdl_ls',
+        ['vhdl']            = 'vhdl_ls',
         ['systemverilog']   = 'verible',
         ['verilog']         = 'verible',
-        ['tex']             = 'ltex',
+        ['tex']             = 'texlab',
         ['c']               = 'clangd',
         ['cpp']             = 'clangd',
         ['python']          = 'pyright',
@@ -313,12 +352,12 @@ lua <<EOF
     if lsp then
       -- The nvim-cmp almost supports LSP's capabilities so You should advertise it to LSP servers..
       local capabilities = vim.lsp.protocol.make_client_capabilities()
-      capabilities = require('cmp_nvim_lsp').default_capabilities(capabilities)
+      --capabilities = require('cmp_nvim_lsp').default_capabilities(capabilities)
 
       local settings = function(lsp)
         local lsp_setting = {
-          ['ltex'] = { ltex = { language = "fr" } },
-          ['ghdl_ls'] = { vhdl = { debugLSP = true } },
+          --['ltex'] = { ltex = { language = "fr" } },
+          --['ghdl_ls'] = { vhdl = { debugLSP = true } },
         }
         local configs = require('lspconfig.configs')
 
@@ -331,10 +370,25 @@ lua <<EOF
         end
       end
 
-      require('lspconfig')[lsp].setup {
-        capabilities = capabilities,
-        settings = settings(lsp),
+      --require('lspconfig')[lsp].setup {
+      --  capabilities = capabilities,
+      --  settings = settings(lsp),
+      --}
+
+      local lspconfig = require('lspconfig')
+
+      vim.g.coq_settings = {
+          auto_start = 'shut-up'
       }
+      local coq = require('coq')
+
+      lspconfig[lsp].setup(
+        coq.lsp_ensure_capabilities({
+            capabilities = capabilities,
+            settings = settings(lsp),
+            on_attach = lsp_attach,
+        }))
+
 
     end
   end
