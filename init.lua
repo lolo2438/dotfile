@@ -58,7 +58,7 @@ require("lazy").setup({
                 ["auto_start"] = "shut-up",
                 ["completion"] = {
                   ["skip_after"] = {
-                    " ", "[", "]", "{", "}"
+                    " ", "[", "]", "{", "}", "\t"
                   }
                 }
               }
