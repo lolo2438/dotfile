@@ -43,9 +43,9 @@ if wezterm.target_triple == 'x86_64-pc-windows-msvc' then
   )
 
 
-  --local nushell_path = 'C:/tools/nu/nu.exe'
-  if file_exists('nu.exe') then
-    config.default_prog = { nushell_path }
+  local nushell_path = 'C:/tools/nu/nu.exe'
+  if file_exists(nushell_path) then
+    config.default_prog = { "nu.exe" }
 
     table.insert(
       launch_menu,
