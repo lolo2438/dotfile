@@ -26,6 +26,11 @@ config.window_background_opacity = 0.95
 
 config.hide_tab_bar_if_only_one_tab = true
 
+config.keys = {
+  { key = 'l', mods = 'ALT', action = wezterm.action.ShowLauncher },
+}
+
+
 -- Configuration for windows
 if wezterm.target_triple == 'x86_64-pc-windows-msvc' then
 
@@ -55,22 +60,6 @@ if wezterm.target_triple == 'x86_64-pc-windows-msvc' then
       }
     )
 
-  end
-
-
-  -- Insert servers to ssh to
-  local username = ''
-  local server_list = {
-  }
-
-  for i, server in ipairs(server_list) do
-    table.insert(
-      launch_menu,
-      {
-        label = 'ssh ' .. server,
-        args = {'ssh', username .. '@' .. server .. ':~/'}
-      }
-    )
   end
 
   -- POWERSHELL
