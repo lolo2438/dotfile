@@ -1,6 +1,4 @@
 ----
--- Plugin Manager
-----
 -- https://lazy.folke.io/installation
 
 -- Bootstrap lazy.nvim
@@ -36,6 +34,9 @@ vim.g.maplocalleader = "\\"
 --vim.g.coq_settings.insertcompletion.skip_after = {""}
 
 --skip_after = {""}
+--
+
+
 
 -- Setup lazy.nvim
 require("lazy").setup({
@@ -53,7 +54,8 @@ require("lazy").setup({
             --end,
             lazy = false,
             branch = "coq",
-            init = function()
+            --init =
+            config = function()
               vim.g.coq_settings = {
                 ["auto_start"] = "shut-up",
                 ["completion"] = {
@@ -85,52 +87,67 @@ require("lazy").setup({
       end,
       config = function()
         do
-          local lsp_list = {
-            ['vhdl']            = 'vhdl_ls',
-            ['systemverilog']   = 'verible',
-            ['verilog']         = 'verible',
-            ['tex']             = 'texlab',
-            ['c']               = 'clangd',
-            ['cpp']             = 'clangd',
-            ['python']          = 'pyright',
-            ['markdown']        = 'marksman'
-          }
+          --local lsp_list = {
+          --  ['vhdl']            = 'vhdl_ls',
+          --  ['systemverilog']   = 'verible',
+          --  ['verilog']         = 'verible',
+          --  ['tex']             = 'texlab',
+          --  ['c']               = 'clangd',
+          --  ['cpp']             = 'clangd',
+          --  ['python']          = 'pyright',
+          --  ['markdown']        = 'marksman'
+          --}
 
-          local ft, _ = vim.filetype.match({buf = vim.api.nvim_get_current_buf()})
-          local lsp = lsp_list[ft]
+          --local ft, _ = vim.filetype.match({buf = vim.api.nvim_get_current_buf()})
+          --local lsp = lsp_list[ft]
 
-          if lsp then
-            local capabilities = vim.lsp.protocol.make_client_capabilities()
+          --if lsp then
 
-            local settings = function(lsp)
-              local lsp_setting = {
-                --['ltex'] = { ltex = { language = "fr" } },
-                --['ghdl_ls'] = { vhdl = { debugLSP = true } },
+          --  local capabilities = vim.lsp.protocol.make_client_capabilities()
+
+          --  local settings = function(lsp)
+          --    local lsp_setting = {
+          --      --['ltex'] = { ltex = { language = "fr" } },
+          --      --['ghdl_ls'] = { vhdl = { debugLSP = true } },
+          --    }
+          --    local configs = require('lspconfig.configs')
+
+          --    if lsp_setting[lsp] then
+          --      return lsp_setting[lsp]
+          --    elseif configs.lsp then
+          --      return configs.lsp.default_config.settings
+          --    else
+          --      return {}
+          --    end
+          --  end
+
+          --  require("lspconfig")[lsp].setup(
+          --    require("coq").lsp_ensure_capabilities(
+          --      {
+          --        capabilities = capabilities,
+          --        settings = settings(lsp),
+          --        on_attach = lsp_attach,
+          --      }
+          --    )
+          --  )
+
+            vim.lsp.config(
+              "*",
+              {
+                root_markers = { ".git" },
               }
-              local configs = require('lspconfig.configs')
+            )
 
-              if lsp_setting[lsp] then
-                return lsp_setting[lsp]
-              elseif configs.lsp then
-                return configs.lsp.default_config.settings
-              else
-                return {}
-              end
-            end
+            vim.lsp.enable("vhdl_ls")
+            vim.lsp.enable("pyright")
 
-            require("lspconfig")[lsp].setup(
-            require("coq").lsp_ensure_capabilities({
-              capabilities = capabilities,
-              settings = settings(lsp),
-              on_attach = lsp_attach,
-            }))
-          end
+            vim.diagnostic.config({ virtual_text = true })
+        --  end
         end
       end
     },
 
-    --{
-    --  'nvim-treesitter/nvim-treesitter',
+    --{ 'nvim-treesitter/nvim-treesitter',
     --  lazy = false,
     --  opts = {
     --    ensure_installed = {"c", "vhdl", "verilog", "systemverilog", "markdown", "lua", "tcl"},
@@ -197,13 +214,17 @@ require("lazy").setup({
       end
     },
 
+    --
     {
-      "karb94/neoscroll.nvim",
-      config = function ()
-        require('neoscroll').setup({})
-      end
+      'mrjones2014/smart-splits.nvim'
     },
-    --{"rakr/vim-one"}
+
+    --{
+    --  "karb94/neoscroll.nvim",
+    --  config = function ()
+    --    require('neoscroll').setup({})
+    --  end
+    --},
     -- Colorscheme
     {
       --"navarasu/onedark.nvim",
@@ -281,7 +302,9 @@ vim.opt.fo:remove("o")
 vim.cmd("set scl=yes")
 
 
-
+-- Keymap
+vim.api.nvim_create_user_command("Wd", ":w|bd", {})
+vim.keymap.set("n", "ZX", ":Wd<CR>", {noremap = true, silent = true});
 
 ---
 -- AUTOCMD
