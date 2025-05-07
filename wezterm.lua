@@ -19,15 +19,17 @@ local config = wezterm.config_builder()
 config.color_scheme = 'OneHalfDark'
 
 --config.font = wezterm.font("MonaspiceNe Mono Nerd Font", {weight="Regular", stretch="Normal", style="Normal"}) -- (AKA: MonaspiceNe NF) /usr/share/fonts/OTF/MonaspiceNeNerdFont-Italic.otf, FontConfig
-
-config.font = wezterm.font('JetBrains Mono', { weight = 'Regular'})
+--config.font = wezterm.font("0xProto Nerd Font", {weight="Regular", stretch="Normal", style="Normal"})
+config.font = wezterm.font("Noto Sans Mono", {weight="Medium", stretch="Normal", style="Normal"})
+--config.font = wezterm.font("Twilio Sans Mono", {weight="Regular", stretch="Normal", style="Normal"})
+--config.font = wezterm.font('JetBrains Mono', { weight = 'Regular'})
 
 config.window_background_opacity = 0.95
 
 config.hide_tab_bar_if_only_one_tab = true
 
 config.keys = {
-  { key = 'l', mods = 'ALT', action = wezterm.action.ShowLauncher },
+  { key = 'l', mods = 'CTRL|ALT', action = wezterm.action.ShowLauncher },
 }
 
 
@@ -43,7 +45,8 @@ if wezterm.target_triple == 'x86_64-pc-windows-msvc' then
     launch_menu,
     {
       label = 'cmd',
-      args = { 'cmd.exe' }
+      args = { 'cmd.exe' },
+      domain = { DomainName = 'local' }
     }
   )
 
@@ -56,7 +59,8 @@ if wezterm.target_triple == 'x86_64-pc-windows-msvc' then
       launch_menu,
       {
         label = 'nu',
-        args  = { 'nu.exe' }
+        args  = { 'nu.exe' },
+        domain = { DomainName = 'local' }
       }
     )
 
@@ -67,7 +71,8 @@ if wezterm.target_triple == 'x86_64-pc-windows-msvc' then
     launch_menu,
     {
       label = 'PowerShell',
-      args = { 'powershell.exe', '-NoLogo' }
+      args = { 'powershell.exe', '-NoLogo' },
+      domain = { DomainName = 'local' }
     }
   )
 
